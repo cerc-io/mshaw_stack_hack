@@ -4,3 +4,4 @@ docker/local/prometheus-data
 local-config.sh
 config.sh
 .vscode/*
+.idea/*

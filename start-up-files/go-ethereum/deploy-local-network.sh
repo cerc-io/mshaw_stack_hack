@@ -172,6 +172,7 @@ echo \
   --ws --ws.addr="0.0.0.0" --ws.origins '*' --ws.api=admin,debug,eth,miner,net,personal,txpool,web3 \
   --nat=none --miner.gasprice 16000000000 --nat=none \
   --unlock="$(IFS=,; echo "${address[*]}")" --password="$gethdir/config/password" \
+  --miner.etherbase="$(IFS=,; echo "${address[*]}")" \
   $EXTRA_START_ARGS &
 geth \
   2> >(tee "$gethdir/geth.log" | grep --line-buffered Success | sed 's/^/geth: /' >&2) \
@@ -186,6 +187,7 @@ geth \
   --ws --ws.addr="0.0.0.0" --ws.origins '*' --ws.api=admin,debug,eth,miner,net,personal,txpool,web3 \
   --nat=none --miner.gasprice 16000000000 --nat=none \
   --unlock="$(IFS=,; echo "${address[*]}")" --password="$gethdir/config/password" \
+  --miner.etherbase="$(IFS=,; echo "${address[*]}")" \
   $EXTRA_START_ARGS &
 
 gethpid=$!
