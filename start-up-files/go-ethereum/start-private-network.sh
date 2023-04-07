@@ -63,3 +63,4 @@ chmod +x ~/transaction_info/NEW_TRANSACTION
 echo "TX OUTPUT: $TX_OUT"
 
 # Run forever
+tail -f "$ETHDIR/geth.log"
