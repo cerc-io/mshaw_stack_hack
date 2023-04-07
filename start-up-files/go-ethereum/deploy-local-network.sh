@@ -1,5 +1,6 @@
 #!/bin/bash
-set -e
+
+set -ex
 
 OPTS="./deploy-local-network.sh [<options>] <args>...
 ./deploy-local-network.sh --help
@@ -83,17 +84,17 @@ fi
 # Create a genesis file if there is no existing chain.
 if [[ ! -f "$gethdir/config/genesis.json" ]]
 then
-for i in $(seq 0 "$ACCOUNTS"); do
-  address+=( "$(
+  for i in $(seq 0 "$ACCOUNTS"); do
+    address+=( "$(
     geth 2>/dev/null account new --datadir "$gethdir" --password=$gethdir/config/password \
       | grep -o -E "0x[A-Fa-f0-9]*" )" )
-  balance+=(' "'"${address[i]}"'": { "balance": "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"}')
-  EXTRA_DATA="0x3132333400000000000000000000000000000000000000000000000000000000${address[0]#0x}0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
-done
-if [[ "$USE_GENESIS" != "true" ]]
+    balance+=(' "'"${address[i]}"'": { "balance": "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"}')
+    EXTRA_DATA="0x3132333400000000000000000000000000000000000000000000000000000000${address[0]#0x}0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+  done
+  if [[ "$USE_GENESIS" != "true" ]]
   then
-  echo "NOT USING GENESIS FILE!!"
-  echo "USE_GENESIS = $USE_GENESIS"
+    echo "NOT USING GENESIS FILE!!"
+    echo "USE_GENESIS = $USE_GENESIS"
     JSON_VAL='{
     "config": {
       "chainId": '"$CHAINID"',
@@ -145,35 +146,23 @@ echo "$ETH_RPC_URL"           > "$gethdir/config/rpc-url"
 echo "$port"                  > "$gethdir/config/node-port"
 
 set +m
-# Uncomment below once waitforsync has been merged
-# geth \
-#   2> >(tee "$gethdir/geth.log" | grep --line-buffered Success | sed 's/^/geth: /' >&2) \
-#   --datadir "$gethdir" --networkid "$CHAINID" --port="$port" \
-#   --mine --miner.threads=1 --allow-insecure-unlock \
-#   --http --http.api "web3,eth,net,debug,personal,statediff" --http.corsdomain '*' --http.vhosts '*' --nodiscover \
-#   --http.addr="$RPC_ADDRESS" --http.port="$RPC_PORT" --syncmode=full --gcmode=archive \
-#   --statediff --statediff.db.host="$DB_HOST" --statediff.db.port="$DB_PORT" --statediff.db.user="$DB_USER" \
-#   --statediff.db.password="$DB_PASSWORD" --statediff.db.name="$DB_NAME" \
-#   --statediff.db.nodeid 1 --statediff.db.clientname test1 --statediff.writing="$DB_WRITE" \
-#   --statediff.db.type="$DB_TYPE" --statediff.db.driver="$DB_DRIVER" --statediff.waitforsync="$DB_WAIT_FOR_SYNC" \
-#   --ws --ws.addr="0.0.0.0" --unlock="$(IFS=,; echo "${address[*]}")" --password=<(exit) &
 
 echo "Starting Geth with following flags"
-echo \
-  2> >(tee "$gethdir/geth.log" | grep --line-buffered Success | sed 's/^/geth: /' >&2) \
-  --datadir "$gethdir" --networkid "$CHAINID" --port="$port" \
+echo "
+  2> >(tee '$gethdir/geth.log' | grep --line-buffered Success | sed 's/^/geth: /' >&2) \
+  --datadir '$gethdir' --networkid '$CHAINID' --port='$port' \
   --mine --miner.threads=1 --allow-insecure-unlock \
-  --http --http.api "admin,debug,eth,miner,net,personal,txpool,web3,statediff" --http.corsdomain '*' --http.vhosts '*' --nodiscover \
-  --http.addr="$RPC_ADDRESS" --http.port="$RPC_PORT" --syncmode=full --gcmode=archive \
-  --statediff --statediff.db.host="$DB_HOST" --statediff.db.port="$DB_PORT" --statediff.db.user="$DB_USER" \
-  --statediff.db.password="$DB_PASSWORD" --statediff.db.name="$DB_NAME" \
-  --statediff.db.nodeid 1 --statediff.db.clientname test1 --statediff.writing="$DB_WRITE" \
-  --statediff.db.type="$DB_TYPE" --statediff.db.driver="$DB_DRIVER" \
-  --ws --ws.addr="0.0.0.0" --ws.origins '*' --ws.api=admin,debug,eth,miner,net,personal,txpool,web3 \
+  --http --http.api 'admin,debug,eth,miner,net,personal,txpool,web3,statediff' --http.corsdomain '*' --http.vhosts '*' --nodiscover \
+  --http.addr='$RPC_ADDRESS' --http.port='$RPC_PORT' --syncmode=full --gcmode=archive \
+  --statediff --statediff.db.host='$DB_HOST' --statediff.db.port='$DB_PORT' --statediff.db.user='$DB_USER' \
+  --statediff.db.password='$DB_PASSWORD' --statediff.db.name='$DB_NAME' \
+  --statediff.db.nodeid 1 --statediff.db.clientname test1 --statediff.writing='$DB_WRITE' \
+  --statediff.db.type='$DB_TYPE' --statediff.db.driver='$DB_DRIVER' \
+  --ws --ws.addr='0.0.0.0' --ws.origins '*' --ws.api=admin,debug,eth,miner,net,personal,txpool,web3 \
   --nat=none --miner.gasprice 16000000000 --nat=none \
-  --unlock="$(IFS=,; echo "${address[*]}")" --password="$gethdir/config/password" \
-  --miner.etherbase="$(IFS=,; echo "${address[*]}")" \
-  $EXTRA_START_ARGS &
+  --unlock='$(IFS=,; echo "${address[*]}")' --password='$gethdir/config/password' \
+  --miner.etherbase='$(IFS=,; echo "${address[*]}")' \
+  $EXTRA_START_ARGS"
 geth \
   2> >(tee "$gethdir/geth.log" | grep --line-buffered Success | sed 's/^/geth: /' >&2) \
   --datadir "$gethdir" --networkid "$CHAINID" --port="$port" \
