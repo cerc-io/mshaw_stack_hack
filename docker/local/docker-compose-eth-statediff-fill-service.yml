@@ -17,6 +17,7 @@ services:
       DATABASE_USER: "vdbm"
       DATABASE_PASSWORD: "password"
       ETH_HTTP_PATH: $eth_http_path
+      ETH_WS_PATH: $eth_ws_path
       WATCHED_ADDRESS_GAP_FILLER_INTERVAL: $watched_address_gap_filler_interval
     ports:
       - "127.0.0.1:8085:8085"
